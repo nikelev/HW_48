@@ -3,86 +3,117 @@ package ait.citizens.test;
 import ait.citizens.dao.Citizens;
 import ait.citizens.dao.CitizensImpl;
 import ait.citizens.model.Person;
-import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CitizensTest {
     Citizens citizens;
-
-
+    static final LocalDate now = LocalDate.now();
+    Person p1;
 
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
-        citizens = new CitizensImpl(List.of(
-                new Person(111,"Ann","Smith",LocalDate.of(2000,01,01)),
-                new Person(222,"Bill","Black",LocalDate.of(2001,01,01)),
-                new Person(333,"Patric","White",LocalDate.of(2002,01,01)),
-                new Person(444,"Jane","Red",LocalDate.of(2003,01,01))
-
-
-        ));
-
-
-
+        p1 = new Person(1, "Peter", "Jackson", now.minusYears(23));
+        citizens = new CitizensImpl(
+                List.of(p1,
+                        new Person(2, "John", "Smith", now.minusYears(20)),
+                        new Person(3, "Mary", "Jackson", now.minusYears(20)),
+                        new Person(4, "Rabindranate", "Anand", now.minusYears(25))));
     }
 
-    @Test
-    void testCitizensImpl(){
-        Citizens citizens1=new CitizensImpl(List.of(
-                new Person(111,"Ann","Smith",LocalDate.of(2000,01,01)),
-                new Person(111,"Ann","Smith",LocalDate.of(2000,01,01))
-        ));
-        assertEquals(1,citizens1.size());
-
+    @org.junit.jupiter.api.Test
+    void testCitizensImplListOfPerson() {
+        citizens = new CitizensImpl(List.of(p1, p1));
+        assertEquals(1, citizens.size());
     }
 
     @org.junit.jupiter.api.Test
     void add() {
         assertFalse(citizens.add(null));
-        assertFalse(citizens.add(new Person(111,"Ann","Smith",LocalDate.of(2000,01,01))));
-        assertTrue(citizens.add(new Person(555,"Annet","Smithon",LocalDate.of(2004,01,01))));
-        assertEquals(5,citizens.size());
+        assertFalse(citizens.add(new Person(2, "John", "Smith", now.minusYears(20))));
+        assertEquals(4, citizens.size());
+        assertTrue(citizens.add(new Person(5, "John", "Smith", now.minusYears(20))));
+        assertEquals(5, citizens.size());
     }
 
     @org.junit.jupiter.api.Test
     void remove() {
-        assertFalse(citizens.remove(555));
-        assertTrue(citizens.remove(111));
-        assertEquals(3,citizens.size());
+        assertFalse(citizens.remove(5));
+        assertEquals(4, citizens.size());
+        assertTrue(citizens.remove(2));
+        assertEquals(3, citizens.size());
     }
 
     @org.junit.jupiter.api.Test
-    void find() {
-        Person expexted= new Person(111,"Ann","Smith",LocalDate.of(2000,01,01)) ;
-        Person actual =citizens.find(111);
-        assertEquals(expexted,actual);
-        assertNull(citizens.find(555));
-
+    void findById() {
+        Person person = citizens.find(1);
+        assertEquals(p1, person);
+        assertEquals(1, person.getId());
+        assertEquals("Peter", person.getFirstName());
+        assertEquals("Jackson", person.getLastName());
+        assertEquals(23, person.getAge());
+        assertNull(citizens.find(5));
     }
 
     @org.junit.jupiter.api.Test
-    void testFindByAge() {
+    void testFindByAges() {
+        Iterable<Person> res = citizens.find(20, 23);
+        List<Person> actual = new ArrayList<>();
+        res.forEach(p -> actual.add(p));
+        Collections.sort(actual);
+        Iterable<Person> expected = List.of(new Person(1, "Peter", "Jackson", now.minusYears(23)),
+                new Person(2, "John", "Smith", now.minusYears(20)),
+                new Person(3, "Mary", "Jackson", now.minusYears(20)));
+        assertIterableEquals(expected, actual);
     }
 
     @org.junit.jupiter.api.Test
-    void testFindByName() {
+    void testFindByLastName() {
+        Iterable<Person> res = citizens.find("Jackson");
+        List<Person> actual = new ArrayList<>();
+        res.forEach(p -> actual.add(p));
+        Collections.sort(actual);
+        Iterable<Person> expected = List.of(
+                new Person(1, "Peter", "Jackson", now.minusYears(23)),
+                new Person(3, "Mary", "Jackson", now.minusYears(20)));
+        assertIterableEquals(expected, actual);
     }
 
     @org.junit.jupiter.api.Test
     void getAllPersonSortedById() {
-    }
-
-    @org.junit.jupiter.api.Test
-    void getAllPersonSortedByAge() {
+        Iterable<Person> actual = citizens.getAllPersonSortedById();
+        Iterable<Person> expected = List.of(p1,
+                new Person(2, "John", "Smith", now.minusYears(20)),
+                new Person(3, "Mary", "Jackson", now.minusYears(20)),
+                new Person(4, "Rabindranate", "Anand", now.minusYears(25)));
+        assertIterableEquals(expected, actual);
     }
 
     @org.junit.jupiter.api.Test
     void getAllPersonSortedByLastName() {
+        Iterable<Person> actual = citizens.getAllPersonSortedByLastName();
+        String name = "";
+        for (Person person : actual) {
+            assertTrue(person.getLastName().compareTo(name) >= 0);
+            name = person.getLastName();
+        }
+    }
+
+    @org.junit.jupiter.api.Test
+    void getAllPersonSortedByAge() {
+        Iterable<Person> actual=citizens.getAllPersonSortedByAge();
+        int age=0;
+        for (Person pers : actual) {
+            assertTrue(pers.getAge()>=age);
+            age=pers.getAge();
+        }
+
     }
 
     @org.junit.jupiter.api.Test

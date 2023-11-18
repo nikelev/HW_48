@@ -3,7 +3,7 @@ package ait.citizens.model;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-public class Person  {
+public class Person implements Comparable<Person>{
     private int id;
     private String firstName;
     private String lastName;
@@ -24,16 +24,12 @@ public class Person  {
         return firstName;
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
     public void setFirstName(String firstName) {
         this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
     }
 
     public void setLastName(String lastName) {
@@ -41,16 +37,19 @@ public class Person  {
     }
 
     public int getAge() {
-        LocalDate dateNow=LocalDate.now();
-        return (int) ChronoUnit.YEARS.between(LocalDate.now(),birthDate);
+        return (int) ChronoUnit.YEARS.between(birthDate, LocalDate.now());
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
 
-        Person person = (Person) o;
+        Person person = (Person) object;
 
         return id == person.id;
     }
@@ -66,10 +65,12 @@ public class Person  {
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", birthDate=" + getAge() +
+                ", age=" + getAge() +
                 '}';
     }
-    public int compareTo(Person o){
-      return Integer.compare(id,o.id);
+
+    @Override
+    public int compareTo(Person o) {
+        return Integer.compare(id, o.id);
     }
 }
